@@ -11,7 +11,6 @@ use crate::{
 
 pub const BASE_TEXT_ADDR: Address = Address(0x0040_0000);
 pub const BASE_DATA_ADDR: Address = Address(0x1001_0000);
-pub const MEMORY_SIZE: usize = 64 * 1024;
 
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 enum Segment {
@@ -47,12 +46,12 @@ pub struct Symbol {
     segment: Segment,
 }
 
-pub struct Assembler {
+pub struct Assembler<'a> {
+    memory: &'a mut HashMap<Address, u8>,
     symbols: HashMap<String, Symbol>,
     data_addr: Address,
     text_addr: Address,
     entry_point: Option<String>,
-    memory: Vec<u8>,
     text_lines: Vec<Instruction>,
     current_segment: Segment,
 }
@@ -81,14 +80,14 @@ pub enum Instruction {
     SystemCall,
 }
 
-impl Assembler {
-    pub fn new() -> Self {
+impl<'a> Assembler<'a> {
+    pub fn new(memory: &'a mut HashMap<Address, u8>) -> Self {
         Self {
             symbols: HashMap::new(),
             data_addr: BASE_DATA_ADDR,
             text_addr: BASE_TEXT_ADDR,
             entry_point: None,
-            memory: vec![0; MEMORY_SIZE],
+            memory,
             text_lines: Vec::new(),
             current_segment: Segment::Text,
         }
@@ -132,6 +131,10 @@ impl Assembler {
                 None => continue,
                 _ => return Err(AssemblerError::InvalidToken),
             }
+        }
+
+        if args.memory {
+            println!("{:?}", self.memory);
         }
 
         Ok(())
@@ -249,10 +252,6 @@ impl Assembler {
         }
     }
 
-    pub fn take_memory(&self) -> Vec<u8> {
-        self.memory.clone()
-    }
-
     pub fn get_instructions(&self) -> HashMap<Address, Instruction> {
         self.text_lines
             .clone()
@@ -292,11 +291,10 @@ impl Assembler {
                     let bytes = CString::from_str(&value)
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes_with_nul();
-                    let start_offset = self.data_addr - BASE_DATA_ADDR;
-                    let end_offset = start_offset + bytes.len();
-                    self.memory
-                        .resize(std::cmp::max(self.memory.len(), end_offset), 0);
-                    self.memory[start_offset..end_offset].copy_from_slice(&bytes);
+                    for (i, &byte) in bytes.iter().enumerate() {
+                        let addr = self.data_addr - BASE_DATA_ADDR + i;
+                        self.memory.insert(addr, byte);
+                    }
                     self.data_addr += bytes.len();
                     Ok(())
                 } else {
@@ -308,11 +306,10 @@ impl Assembler {
                     let bytes = CString::from_str(&value)
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes();
-                    let start_offset = self.data_addr - BASE_DATA_ADDR;
-                    let end_offset = start_offset + bytes.len();
-                    self.memory
-                        .resize(std::cmp::max(self.memory.len(), end_offset), 0);
-                    self.memory[start_offset..end_offset].copy_from_slice(&bytes);
+                    for (i, &byte) in bytes.iter().enumerate() {
+                        let addr = self.data_addr - BASE_DATA_ADDR + i;
+                        self.memory.insert(addr, byte);
+                    }
                     self.data_addr += bytes.len();
                     Ok(())
                 } else {
@@ -326,13 +323,9 @@ impl Assembler {
                     }
 
                     let byte_val = *value as u8;
-                    let offset: usize = (self.data_addr - BASE_DATA_ADDR).into();
+                    let addr = self.data_addr - BASE_DATA_ADDR;
 
-                    if offset >= self.memory.len() {
-                        self.memory.resize(offset + 1, 0);
-                    }
-
-                    self.memory[offset] = byte_val;
+                    self.memory.insert(addr, byte_val);
                     self.data_addr += 1;
                 }
                 Ok(())

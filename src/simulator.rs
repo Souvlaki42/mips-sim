@@ -7,7 +7,7 @@ use thiserror::Error;
 
 use crate::{
     address::Address,
-    assembler::{BASE_DATA_ADDR, Instruction, MEMORY_SIZE},
+    assembler::{BASE_DATA_ADDR, Instruction},
     registers::{Register, RegisterError, RegisterFile},
 };
 
@@ -30,25 +30,21 @@ pub enum SimulatorError {
 }
 
 #[derive(Debug)]
-pub struct Simulator {
-    memory: [u8; MEMORY_SIZE],
+pub struct Simulator<'a> {
+    memory: &'a mut HashMap<Address, u8>,
     registers: RegisterFile,
     instructions: HashMap<Address, Instruction>,
     pc: Address,
 }
 
-impl Simulator {
+impl<'a> Simulator<'a> {
     pub fn new(
         instructions: HashMap<Address, Instruction>,
-        memory: Vec<u8>,
+        memory: &'a mut HashMap<Address, u8>,
         entry: Address,
-    ) -> Simulator {
-        let mut mem_array = [0u8; MEMORY_SIZE];
-        let len = memory.len().min(MEMORY_SIZE);
-        mem_array[..len].copy_from_slice(&memory[..len]);
-
-        Simulator {
-            memory: mem_array,
+    ) -> Self {
+        Self {
+            memory,
             registers: RegisterFile::default(),
             instructions,
             pc: entry,
@@ -100,14 +96,19 @@ impl Simulator {
                 print!("{}", value);
             }
             4 => {
-                let addr = self.registers.get(Register::A0) as usize;
-                let offset: usize = (addr - BASE_DATA_ADDR).into();
+                let addr: Address = self.registers.get(Register::A0).into();
+                let offset: Address = addr - BASE_DATA_ADDR;
 
                 let mut bytes = Vec::new();
                 let mut i = offset;
-                while i < self.memory.len() && self.memory[i] != 0 {
-                    bytes.push(self.memory[i]);
-                    i += 1;
+                loop {
+                    match self.memory.get(&i) {
+                        Some(&byte) if byte != 0 => {
+                            bytes.push(byte);
+                            i += 1;
+                        }
+                        _ => break,
+                    }
                 }
 
                 let s = String::from_utf8_lossy(&bytes);

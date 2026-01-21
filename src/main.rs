@@ -7,7 +7,7 @@ mod simulator;
 
 use cli::CLI;
 use simulator::Simulator;
-use std::process;
+use std::{collections::HashMap, process};
 
 use crate::simulator::SimulatorError;
 
@@ -30,22 +30,18 @@ fn main() {
         println!("{:?}", args);
     }
 
-    let mut assembler = assembler::Assembler::new();
+    let mut memory = HashMap::new();
+
+    let mut assembler = assembler::Assembler::new(&mut memory);
     if let Err(err) = assembler.assemble(&args) {
         println!("Assembler Error: {:?}", err);
         return;
     }
 
-    let memory = assembler.take_memory();
-
-    if args.memory {
-        println!("{:?}", memory);
-    }
-
     let instructions = assembler.get_instructions();
     let entry = assembler.get_entry_point();
 
-    let mut simulator = Simulator::new(instructions, memory, entry);
+    let mut simulator = Simulator::new(instructions, &mut memory, entry);
 
     let mut exit_code = 0;
     loop {

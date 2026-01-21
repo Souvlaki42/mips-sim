@@ -1,10 +1,10 @@
-use derive_more::{BitAnd, Eq, From, Into, Shr};
+use derive_more::{BitAnd, Eq, From, Into, Shr, Sub};
 use std::{
     fmt::{Debug, Formatter, Result},
-    ops::{Add, AddAssign, Sub},
+    ops::{Add, AddAssign},
 };
 
-#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, PartialEq, Eq)]
+#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, PartialEq, Eq, Sub)]
 pub struct Address(pub u32);
 
 impl Debug for Address {
@@ -29,13 +29,6 @@ impl Add<u32> for Address {
     }
 }
 
-impl Sub for Address {
-    type Output = usize;
-    fn sub(self, other: Address) -> usize {
-        (self.0 - other.0) as usize
-    }
-}
-
 impl AddAssign<usize> for Address {
     fn add_assign(&mut self, offset: usize) {
         self.0 += offset as u32;
@@ -45,13 +38,6 @@ impl AddAssign<usize> for Address {
 impl From<Address> for usize {
     fn from(addr: Address) -> usize {
         addr.0 as usize
-    }
-}
-
-impl Sub<Address> for usize {
-    type Output = usize;
-    fn sub(self, rhs: Address) -> Self::Output {
-        self - (rhs.0 as usize)
     }
 }
 
