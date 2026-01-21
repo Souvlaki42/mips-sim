@@ -178,7 +178,7 @@ impl<'a> Assembler<'a> {
                     return Ok(vec![Instruction::AddUnsigned {
                         res,
                         reg,
-                        ret: Register::ZERO,
+                        ret: Register::Zero,
                     }]);
                 }
                 "li" => {
@@ -188,7 +188,7 @@ impl<'a> Assembler<'a> {
                     if (-32768..=32767).contains(&imm) {
                         return Ok(vec![Instruction::AddImmediate {
                             res,
-                            reg: Register::ZERO,
+                            reg: Register::Zero,
                             imm,
                         }]);
                     } else if (imm & 0xFFFF) == 0 {
@@ -270,15 +270,15 @@ impl<'a> Assembler<'a> {
         tokens: &mut Peekable<Iter<Token>>,
     ) -> Result<(), AssemblerError> {
         match kind {
-            Directive::DataDirective => {
+            Directive::Data => {
                 self.current_segment = Segment::Data;
                 Ok(())
             }
-            Directive::TextDirective => {
+            Directive::Text => {
                 self.current_segment = Segment::Text;
                 Ok(())
             }
-            Directive::GlobalDirective => {
+            Directive::Global => {
                 if let Some(Token::Label { name, decl: false }) = tokens.next() {
                     self.entry_point = Some(name.clone());
                     Ok(())
@@ -286,7 +286,7 @@ impl<'a> Assembler<'a> {
                     Err(AssemblerError::EntrypointMissing)
                 }
             }
-            Directive::AsciizDirective => {
+            Directive::Asciiz => {
                 if let Some(Token::Text { value }) = tokens.next() {
                     let bytes = CString::from_str(value)
                         .map_err(|_| AssemblerError::InvalidString)?
@@ -301,7 +301,7 @@ impl<'a> Assembler<'a> {
                     Err(AssemblerError::InvalidToken)
                 }
             }
-            Directive::AsciiDirective => {
+            Directive::Ascii => {
                 if let Some(Token::Text { value }) = tokens.next() {
                     let bytes = CString::from_str(value)
                         .map_err(|_| AssemblerError::InvalidString)?
@@ -316,7 +316,7 @@ impl<'a> Assembler<'a> {
                     Err(AssemblerError::InvalidToken)
                 }
             }
-            Directive::ByteDirective => {
+            Directive::Byte => {
                 while let Some(Token::Number { value }) = tokens.next() {
                     if *value < -128 || *value > 255 {
                         return Err(AssemblerError::InvalidByteValue);

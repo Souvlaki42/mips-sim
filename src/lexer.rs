@@ -4,13 +4,13 @@ use thiserror::Error;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Directive {
-    DataDirective,
-    TextDirective,
-    GlobalDirective,
-    AsciiDirective,
-    AsciizDirective,
-    ByteDirective,
-    WordDirective,
+    Data,
+    Text,
+    Global,
+    Ascii,
+    Asciiz,
+    Byte,
+    Word,
 }
 
 #[derive(Debug, Clone)]
@@ -37,13 +37,13 @@ pub enum TokenizerError {
 
 fn parse_directive(token: &str) -> Result<Directive, TokenizerError> {
     match token {
-        ".data" => Ok(Directive::DataDirective),
-        ".text" => Ok(Directive::TextDirective),
-        ".globl" => Ok(Directive::GlobalDirective),
-        ".ascii" => Ok(Directive::AsciiDirective),
-        ".asciiz" => Ok(Directive::AsciizDirective),
-        ".byte" => Ok(Directive::ByteDirective),
-        ".word" => Ok(Directive::WordDirective),
+        ".data" => Ok(Directive::Data),
+        ".text" => Ok(Directive::Text),
+        ".globl" => Ok(Directive::Global),
+        ".ascii" => Ok(Directive::Ascii),
+        ".asciiz" => Ok(Directive::Asciiz),
+        ".byte" => Ok(Directive::Byte),
+        ".word" => Ok(Directive::Word),
         other => Err(TokenizerError::UnknownDirective(other.to_string())),
     }
 }

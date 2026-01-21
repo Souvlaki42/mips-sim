@@ -9,8 +9,8 @@ pub enum RegisterError {
 #[repr(usize)]
 #[derive(Debug, Clone, Copy)]
 pub enum Register {
-    ZERO = 0,
-    AT = 1,
+    Zero = 0,
+    At = 1,
     V0 = 2,
     V1 = 3,
     A0 = 4,
@@ -37,18 +37,18 @@ pub enum Register {
     T9 = 25,
     K0 = 26,
     K1 = 27,
-    GP = 28,
-    SP = 29,
-    FP = 30,
-    RA = 31,
+    Gp = 28,
+    Sp = 29,
+    Fp = 30,
+    Ra = 31,
 }
 
 impl std::str::FromStr for Register {
     type Err = RegisterError;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "$zero" | "$0" => Ok(Register::ZERO),
-            "$at" => Ok(Register::AT),
+            "$zero" | "$0" => Ok(Register::Zero),
+            "$at" => Ok(Register::At),
             "$v0" => Ok(Register::V0),
             "$v1" => Ok(Register::V1),
             "$a0" => Ok(Register::A0),
@@ -75,10 +75,10 @@ impl std::str::FromStr for Register {
             "$t9" => Ok(Register::T9),
             "$k0" => Ok(Register::K0),
             "$k1" => Ok(Register::K1),
-            "$gp" => Ok(Register::GP),
-            "$sp" => Ok(Register::SP),
-            "$fp" => Ok(Register::FP),
-            "$ra" => Ok(Register::RA),
+            "$gp" => Ok(Register::Gp),
+            "$sp" => Ok(Register::Sp),
+            "$fp" => Ok(Register::Fp),
+            "$ra" => Ok(Register::Ra),
             other => Err(RegisterError::NoSuchRegister(other.to_string())),
         }
     }
