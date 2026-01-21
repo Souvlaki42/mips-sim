@@ -77,9 +77,9 @@ pub fn tokenize(file_name: &str) -> Result<Vec<Vec<Token>>, TokenizerError> {
 
     file.read_to_string(&mut contents)
         .map_err(|_| TokenizerError::ReadFileError(file_name.to_string()))?;
-    let mut lines = contents.lines();
+    let lines = contents.lines();
 
-    while let Some(mut line) = lines.next() {
+    for mut line in lines {
         if line.starts_with("#") {
             continue;
         }
@@ -96,16 +96,12 @@ pub fn tokenize(file_name: &str) -> Result<Vec<Vec<Token>>, TokenizerError> {
             .split(|c: char| {
                 if c == '"' && !inside_byte {
                     inside_string = !inside_string;
-                    return false;
+                    false
                 } else if c == '\'' && !inside_string {
                     inside_byte = !inside_byte;
-                    return false;
-                } else if inside_string {
-                    return false;
-                } else if inside_byte {
-                    return false;
+                    false
                 } else {
-                    c.is_whitespace() || c == ','
+                    !inside_byte || !inside_string || c.is_whitespace() || c == ','
                 }
             })
             .filter(|s| !s.is_empty())

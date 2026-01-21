@@ -14,7 +14,7 @@ pub struct Args {
 impl Args {
     pub fn new() -> Self {
         let args: Vec<String> = env::args().collect();
-        return Self {
+        Self {
             file: match args.get(1) {
                 Some(file) => file.to_string(),
                 None => "".to_string(),
@@ -28,7 +28,7 @@ impl Args {
                 || args.contains(&"--instructions".to_string()),
             version: args.contains(&"-v".to_string()) || args.contains(&"--version".to_string()),
             memory: args.contains(&"-m".to_string()) || args.contains(&"--memory".to_string()),
-        };
+        }
     }
 
     pub fn print_help(&self, package_name: &str) {

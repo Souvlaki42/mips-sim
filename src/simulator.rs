@@ -83,7 +83,7 @@ impl<'a> Simulator<'a> {
         let mut input = String::new();
         std::io::stdin()
             .read_line(&mut input)
-            .map_err(|e| SimulatorError::IoError(e))?;
+            .map_err(SimulatorError::IoError)?;
         input = input.trim().to_string();
         Ok(input)
     }
@@ -131,7 +131,7 @@ impl<'a> Simulator<'a> {
             30 => {
                 let duration = SystemTime::now()
                     .duration_since(UNIX_EPOCH)
-                    .map_err(|e| SimulatorError::InvalidSystemTime(e))?;
+                    .map_err(SimulatorError::InvalidSystemTime)?;
 
                 let millis = duration.as_millis() as u64;
 
@@ -149,11 +149,10 @@ impl<'a> Simulator<'a> {
     }
 
     pub fn step(&mut self) -> Result<(), SimulatorError> {
-        let instruction = self
+        let instruction = *self
             .instructions
             .get(&self.pc)
-            .ok_or(SimulatorError::NoMoreInstructions)?
-            .clone();
+            .ok_or(SimulatorError::NoMoreInstructions)?;
 
         self.execute_instruction(instruction)?;
         self.pc += 4;
