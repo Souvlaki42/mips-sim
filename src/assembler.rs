@@ -121,7 +121,7 @@ impl<'a> Assembler<'a> {
 
             match tokens.next() {
                 Some(Token::Directive { kind }) => self.handle_directive(kind, &mut tokens)?,
-                Some(token) if matches!(token, Token::Operator { .. }) => {
+                Some(Token::Operator { .. }) => {
                     let expanded = self.expand_instruction(line_tokens)?;
                     self.text_lines.extend(&expanded);
                     if args.instructions {
@@ -185,7 +185,7 @@ impl<'a> Assembler<'a> {
                     let res = self.parse_register(&mut iter)?;
                     let imm = self.parse_immediate(&mut iter)?;
 
-                    if imm >= -32768 && imm <= 32767 {
+                    if (-32768..=32767).contains(&imm) {
                         return Ok(vec![Instruction::AddImmediate {
                             res,
                             reg: Register::ZERO,
@@ -221,8 +221,8 @@ impl<'a> Assembler<'a> {
                         return Err(AssemblerError::InvalidLabel(label.clone()));
                     }
 
-                    let high = (*symbol).address >> 16;
-                    let low = (*symbol).address & 0xffff.into();
+                    let high = symbol.address >> 16;
+                    let low = symbol.address & 0xffff.into();
 
                     return Ok(vec![
                         Instruction::LoadUpperImmediate {
@@ -288,7 +288,7 @@ impl<'a> Assembler<'a> {
             }
             Directive::AsciizDirective => {
                 if let Some(Token::Text { value }) = tokens.next() {
-                    let bytes = CString::from_str(&value)
+                    let bytes = CString::from_str(value)
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes_with_nul();
                     for (i, &byte) in bytes.iter().enumerate() {
@@ -303,7 +303,7 @@ impl<'a> Assembler<'a> {
             }
             Directive::AsciiDirective => {
                 if let Some(Token::Text { value }) = tokens.next() {
-                    let bytes = CString::from_str(&value)
+                    let bytes = CString::from_str(value)
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes();
                     for (i, &byte) in bytes.iter().enumerate() {
@@ -338,7 +338,7 @@ impl<'a> Assembler<'a> {
         match iter.next() {
             Some(Token::Register { value }) => value
                 .parse::<Register>()
-                .map_err(|e| AssemblerError::InvalidRegister(e)),
+                .map_err(AssemblerError::InvalidRegister),
             _ => Err(AssemblerError::InvalidInstruction),
         }
     }
