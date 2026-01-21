@@ -4,7 +4,7 @@ use thiserror::Error;
 
 use crate::{
     address::Address,
-    cli::CLI,
+    args::Args,
     lexer::{Directive, Token, TokenizerError, tokenize},
     registers::{Register, RegisterError},
 };
@@ -94,7 +94,7 @@ impl<'a> Assembler<'a> {
     }
 
     // TODO: Add support for forward references
-    pub fn assemble(&mut self, args: &CLI) -> Result<(), AssemblerError> {
+    pub fn assemble(&mut self, args: &Args) -> Result<(), AssemblerError> {
         let tokenized = tokenize(&args.file)?;
 
         for line_tokens in tokenized {

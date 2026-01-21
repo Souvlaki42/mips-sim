@@ -1,7 +1,7 @@
 use std::env;
 
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
-pub struct CLI {
+pub struct Args {
     pub file: String,
     pub args: bool,
     pub help: bool,
@@ -11,7 +11,7 @@ pub struct CLI {
     pub memory: bool,
 }
 
-impl CLI {
+impl Args {
     pub fn new() -> Self {
         let args: Vec<String> = env::args().collect();
         return Self {

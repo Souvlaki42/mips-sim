@@ -1,18 +1,18 @@
 mod address;
+mod args;
 mod assembler;
-mod cli;
 mod lexer;
 mod registers;
 mod simulator;
 
-use cli::CLI;
+use args::Args;
 use simulator::Simulator;
 use std::{collections::HashMap, process};
 
 use crate::simulator::SimulatorError;
 
 fn main() {
-    let args = CLI::new();
+    let args = Args::new();
     let package_name = env!("CARGO_PKG_NAME");
     let package_version = env!("CARGO_PKG_VERSION");
 
