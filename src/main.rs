@@ -1,6 +1,7 @@
 mod address;
 mod args;
 mod assembler;
+mod instructions;
 mod lexer;
 mod registers;
 mod simulator;

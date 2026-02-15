@@ -7,7 +7,8 @@ use thiserror::Error;
 
 use crate::{
     address::Address,
-    assembler::{BASE_DATA_ADDR, Instruction},
+    assembler::BASE_DATA_ADDR,
+    instructions::Instruction,
     registers::{Register, RegisterError, RegisterFile},
 };
 

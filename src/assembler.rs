@@ -5,6 +5,7 @@ use thiserror::Error;
 use crate::{
     address::Address,
     args::Args,
+    instructions::Instruction,
     lexer::{Directive, Token, TokenizerError, tokenize},
     registers::{Register, RegisterError},
 };
