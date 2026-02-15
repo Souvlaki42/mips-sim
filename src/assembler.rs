@@ -29,6 +29,8 @@ pub enum AssemblerError {
     EntrypointMissing,
     #[error("Invalid instruction")]
     InvalidInstruction,
+    #[error("Invalid immediate: {0:?}")]
+    InvalidImmediate(Option<i32>),
     #[error("Invalid register: {0}")]
     InvalidRegister(#[from] RegisterError),
     #[error("Invalid label: {0}")]
@@ -55,30 +57,6 @@ pub struct Assembler<'a> {
     entry_point: Option<String>,
     text_lines: Vec<Instruction>,
     current_segment: Segment,
-}
-
-#[derive(Debug, Clone, Copy)]
-pub enum Instruction {
-    AddImmediate {
-        res: Register,
-        reg: Register,
-        imm: i32,
-    },
-    AddUnsigned {
-        res: Register,
-        reg: Register,
-        ret: Register,
-    },
-    LoadUpperImmediate {
-        res: Register,
-        imm: i32,
-    },
-    OrImmediate {
-        res: Register,
-        reg: Register,
-        imm: i32,
-    },
-    SystemCall,
 }
 
 impl<'a> Assembler<'a> {
@@ -153,7 +131,7 @@ impl<'a> Assembler<'a> {
                 "addi" => {
                     let res = self.parse_register(&mut iter)?;
                     let reg = self.parse_register(&mut iter)?;
-                    let imm = self.parse_immediate(&mut iter)?;
+                    let imm = self.parse_immediate_i16(&mut iter)?;
                     return Ok(vec![Instruction::AddImmediate { res, reg, imm }]);
                 }
                 "addu" => {
@@ -164,13 +142,13 @@ impl<'a> Assembler<'a> {
                 }
                 "lui" => {
                     let res = self.parse_register(&mut iter)?;
-                    let imm = self.parse_immediate(&mut iter)?;
+                    let imm = self.parse_immediate_i16(&mut iter)?;
                     return Ok(vec![Instruction::LoadUpperImmediate { res, imm }]);
                 }
                 "ori" => {
                     let res = self.parse_register(&mut iter)?;
                     let reg = self.parse_register(&mut iter)?;
-                    let imm = self.parse_immediate(&mut iter)?;
+                    let imm = self.parse_immediate_i16(&mut iter)?;
                     return Ok(vec![Instruction::OrImmediate { res, reg, imm }]);
                 }
                 "move" => {
@@ -184,28 +162,31 @@ impl<'a> Assembler<'a> {
                 }
                 "li" => {
                     let res = self.parse_register(&mut iter)?;
-                    let imm = self.parse_immediate(&mut iter)?;
+                    let imm = self.parse_immediate_i32(&mut iter)?;
 
                     if (-32768..=32767).contains(&imm) {
                         return Ok(vec![Instruction::AddImmediate {
                             res,
                             reg: Register::Zero,
-                            imm,
+                            imm: imm as i16,
                         }]);
                     } else if (imm & 0xFFFF) == 0 {
                         return Ok(vec![Instruction::LoadUpperImmediate {
                             res,
-                            imm: (imm >> 16),
+                            imm: (imm >> 16) as i16,
                         }]);
                     } else {
                         let high = (imm >> 16) + if (imm & 0x8000) != 0 { 1 } else { 0 };
                         let low = imm & 0xFFFF;
                         return Ok(vec![
-                            Instruction::LoadUpperImmediate { res, imm: high },
+                            Instruction::LoadUpperImmediate {
+                                res,
+                                imm: high as i16,
+                            },
                             Instruction::AddImmediate {
                                 res,
                                 reg: res,
-                                imm: low,
+                                imm: low as i16,
                             },
                         ]);
                     }
@@ -344,10 +325,31 @@ impl<'a> Assembler<'a> {
         }
     }
 
-    fn parse_immediate(&self, iter: &mut Peekable<Iter<Token>>) -> Result<i32, AssemblerError> {
+    fn parse_immediate_i32(&self, iter: &mut Peekable<Iter<Token>>) -> Result<i32, AssemblerError> {
         match iter.next() {
             Some(Token::Number { value }) => Ok(*value),
-            _ => Err(AssemblerError::InvalidInstruction),
+            _ => Err(AssemblerError::InvalidImmediate(None)),
+        }
+    }
+
+    fn parse_immediate_i16(&self, iter: &mut Peekable<Iter<Token>>) -> Result<i16, AssemblerError> {
+        match iter.next() {
+            Some(Token::Number { value }) => match i16::try_from(*value) {
+                Ok(value) => Ok(value),
+                Err(_) => Err(AssemblerError::InvalidImmediate(Some(*value))),
+            },
+            _ => Err(AssemblerError::InvalidImmediate(None)),
+        }
+    }
+
+    #[allow(dead_code)]
+    fn parse_immediate_u16(&self, iter: &mut Peekable<Iter<Token>>) -> Result<u16, AssemblerError> {
+        match iter.next() {
+            Some(Token::Number { value }) => match u16::try_from(*value) {
+                Ok(value) => Ok(value),
+                Err(_) => Err(AssemblerError::InvalidImmediate(Some(*value))),
+            },
+            _ => Err(AssemblerError::InvalidImmediate(None)),
         }
     }
 
