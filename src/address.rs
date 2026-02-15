@@ -46,3 +46,9 @@ impl From<Address> for i16 {
         value.0 as i16
     }
 }
+
+impl From<Address> for u16 {
+    fn from(value: Address) -> Self {
+        value.0 as u16
+    }
+}

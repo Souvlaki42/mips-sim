@@ -148,7 +148,7 @@ impl<'a> Assembler<'a> {
                 "ori" => {
                     let res = self.parse_register(&mut iter)?;
                     let reg = self.parse_register(&mut iter)?;
-                    let imm = self.parse_immediate_i16(&mut iter)?;
+                    let imm = self.parse_immediate_u16(&mut iter)?;
                     return Ok(vec![Instruction::OrImmediate { res, reg, imm }]);
                 }
                 "move" => {
@@ -342,7 +342,6 @@ impl<'a> Assembler<'a> {
         }
     }
 
-    #[allow(dead_code)]
     fn parse_immediate_u16(&self, iter: &mut Peekable<Iter<Token>>) -> Result<u16, AssemblerError> {
         match iter.next() {
             Some(Token::Number { value }) => match u16::try_from(*value) {

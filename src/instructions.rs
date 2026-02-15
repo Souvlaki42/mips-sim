@@ -19,7 +19,7 @@ pub enum Instruction {
     OrImmediate {
         res: Register,
         reg: Register,
-        imm: i16,
+        imm: u16,
     },
     SystemCall,
 }
