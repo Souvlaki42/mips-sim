@@ -171,11 +171,11 @@ impl<'a> Assembler<'a> {
                     let res = self.parse_register(&mut iter)?;
                     let imm = self.parse_immediate_i32(&mut iter)?;
 
-                    if (-32768..=32767).contains(&imm) {
+                    if let Ok(imm) = i16::try_from(imm) {
                         return Ok(vec![Instruction::AddImmediate {
                             res,
                             reg: Register::Zero,
-                            imm: imm as i16,
+                            imm,
                         }]);
                     } else if (imm & 0xFFFF) == 0 {
                         return Ok(vec![Instruction::LoadUpperImmediate {
@@ -232,13 +232,11 @@ impl<'a> Assembler<'a> {
     }
 
     pub fn get_entry_point(&self) -> Address {
-        match &self.entry_point {
-            Some(entry) => match self.symbols.get(entry) {
-                Some(symbol) => symbol.address,
-                None => BASE_TEXT_ADDR,
-            },
-            None => BASE_TEXT_ADDR,
-        }
+        self.entry_point
+            .as_ref()
+            .and_then(|e| self.symbols.get(e))
+            .map(|s| s.address)
+            .unwrap_or(BASE_TEXT_ADDR)
     }
 
     fn handle_directive(

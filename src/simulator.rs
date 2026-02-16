@@ -145,8 +145,8 @@ impl<'a> Simulator<'a> {
 
     pub fn step(&mut self) -> Result<(), SimulatorError> {
         let mut bytes = [0u8; 4];
-        for i in 0..bytes.len() {
-            bytes[i] = *self.memory.get(&(self.pc + i)).unwrap();
+        for (i, byte) in bytes.iter_mut().enumerate() {
+            *byte = *self.memory.get(&(self.pc + i)).unwrap();
         }
 
         let Ok(instruction) = Instruction::decode(u32::from_le_bytes(bytes)) else {

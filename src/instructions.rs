@@ -44,7 +44,7 @@ impl Instruction {
 
             // R-type: op=0, rs=reg, rt=ret, rd=res, shamt=0, funct=0x21
             Instruction::AddUnsigned { res, reg, ret } => {
-                0 | ((*reg as u32) << 21) | ((*ret as u32) << 16) | ((*res as u32) << 11) | 0x21
+                ((*reg as u32) << 21) | ((*ret as u32) << 16) | ((*res as u32) << 11) | 0x21
             }
 
             // I-type: opcode=15, rs=0, rt=res, imm
