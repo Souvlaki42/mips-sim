@@ -55,7 +55,6 @@ pub struct Assembler<'a> {
     data_addr: Address,
     text_addr: Address,
     entry_point: Option<String>,
-    text_lines: Vec<Instruction>,
     current_segment: Segment,
 }
 
@@ -67,7 +66,6 @@ impl<'a> Assembler<'a> {
             text_addr: BASE_TEXT_ADDR,
             entry_point: None,
             memory,
-            text_lines: Vec::new(),
             current_segment: Segment::Text,
         }
     }
@@ -102,7 +100,16 @@ impl<'a> Assembler<'a> {
                 Some(Token::Directive { kind }) => self.handle_directive(kind, &mut tokens)?,
                 Some(Token::Operator { .. }) => {
                     let expanded = self.expand_instruction(line_tokens)?;
-                    self.text_lines.extend(&expanded);
+
+                    for inst in &expanded {
+                        let bytes = inst.encode().to_le_bytes();
+                        for (i, &byte) in bytes.iter().enumerate() {
+                            let addr = self.text_addr + i;
+                            self.memory.insert(addr, byte);
+                        }
+                        self.text_addr += bytes.len();
+                    }
+
                     if args.instructions {
                         println!("{:?}", expanded);
                     }
@@ -232,18 +239,6 @@ impl<'a> Assembler<'a> {
             },
             None => BASE_TEXT_ADDR,
         }
-    }
-
-    pub fn get_instructions(&self) -> HashMap<Address, Instruction> {
-        self.text_lines
-            .clone()
-            .into_iter()
-            .enumerate()
-            .map(|(i, inst)| {
-                let addr = BASE_TEXT_ADDR + i * 4;
-                (addr, inst)
-            })
-            .collect()
     }
 
     fn handle_directive(

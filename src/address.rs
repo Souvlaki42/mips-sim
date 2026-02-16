@@ -29,6 +29,13 @@ impl Add<u32> for Address {
     }
 }
 
+impl Add<usize> for &Address {
+    type Output = Address;
+    fn add(self, offset: usize) -> Address {
+        Address(self.0 + offset as u32)
+    }
+}
+
 impl AddAssign<usize> for Address {
     fn add_assign(&mut self, offset: usize) {
         self.0 += offset as u32;
