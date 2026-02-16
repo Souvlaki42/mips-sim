@@ -9,9 +9,7 @@ pub struct Address(pub u32);
 
 impl Debug for Address {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        f.debug_tuple("Address")
-            .field(&format_args!("0x{:08X}", self.0))
-            .finish()
+        write!(f, "0x{:08X}", self.0)
     }
 }
 
@@ -39,7 +37,7 @@ impl Sub<Address> for i32 {
 impl Sub<Address> for u32 {
     type Output = u32;
     fn sub(self, rhs: Address) -> Self::Output {
-        self - rhs.0 as u32
+        self - rhs.0
     }
 }
 

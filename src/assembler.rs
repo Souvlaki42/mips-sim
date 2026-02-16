@@ -291,7 +291,7 @@ impl<'a> Assembler<'a> {
             }
             Directive::Byte => {
                 while let Some(Token::Number { value }) = tokens.next() {
-                    if *value < -128 || *value > 255 {
+                    if ((i8::MIN as i32)..=(u8::MAX as i32)).contains(value) {
                         return Err(AssemblerError::InvalidByteValue);
                     }
 
