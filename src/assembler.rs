@@ -22,8 +22,6 @@ enum Segment {
 #[derive(Error, Debug)]
 pub enum AssemblerError {
     #[error("Unknown directive")]
-    UnknownDirective,
-    #[error("Invalid token")]
     InvalidToken,
     #[error("Entrypoint missing")]
     EntrypointMissing,
@@ -305,7 +303,23 @@ impl<'a> Assembler<'a> {
                 }
                 Ok(())
             }
-            _ => Err(AssemblerError::UnknownDirective),
+            Directive::Word => {
+                let offset = self.data_addr % 4;
+                if offset != 0 {
+                    self.data_addr += (4 - offset) as usize;
+                }
+
+                while let Some(Token::Number { value }) = tokens.next() {
+                    let addr = self.data_addr;
+                    let bytes = value.to_le_bytes();
+
+                    for (i, &byte) in bytes.iter().enumerate() {
+                        self.memory.insert(addr + i, byte);
+                    }
+                    self.data_addr += bytes.len();
+                }
+                Ok(())
+            }
         }
     }
 

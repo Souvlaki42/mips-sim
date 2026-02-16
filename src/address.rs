@@ -1,10 +1,10 @@
-use derive_more::{BitAnd, Eq, From, Into, Shr, Sub};
+use derive_more::{BitAnd, Eq, From, Into, Rem, Shr};
 use std::{
     fmt::{Debug, Formatter, Result},
-    ops::{Add, AddAssign},
+    ops::{Add, AddAssign, Sub},
 };
 
-#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, PartialEq, Eq, Sub)]
+#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, Eq, Rem, PartialEq)]
 pub struct Address(pub u32);
 
 impl Debug for Address {
@@ -26,6 +26,34 @@ impl Add<u32> for Address {
     type Output = Address;
     fn add(self, offset: u32) -> Address {
         Address(self.0 + offset)
+    }
+}
+
+impl Sub<Address> for i32 {
+    type Output = i32;
+    fn sub(self, rhs: Address) -> Self::Output {
+        self - rhs.0 as i32
+    }
+}
+
+impl Sub<Address> for u32 {
+    type Output = u32;
+    fn sub(self, rhs: Address) -> Self::Output {
+        self - rhs.0 as u32
+    }
+}
+
+impl Sub<Address> for Address {
+    type Output = Address;
+    fn sub(self, rhs: Address) -> Self::Output {
+        Address(self.0 - rhs.0)
+    }
+}
+
+impl Sub<Address> for usize {
+    type Output = usize;
+    fn sub(self, rhs: Address) -> Self::Output {
+        self - rhs.0 as usize
     }
 }
 
@@ -57,5 +85,11 @@ impl From<Address> for i16 {
 impl From<Address> for u16 {
     fn from(value: Address) -> Self {
         value.0 as u16
+    }
+}
+
+impl PartialEq<i32> for Address {
+    fn eq(&self, other: &i32) -> bool {
+        self.0 as i32 == *other
     }
 }
