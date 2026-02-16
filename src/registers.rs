@@ -1,3 +1,4 @@
+use num_enum::TryFromPrimitive;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
@@ -6,8 +7,8 @@ pub enum RegisterError {
     NoSuchRegister(String),
 }
 
-#[repr(usize)]
-#[derive(Debug, Clone, Copy)]
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, TryFromPrimitive)]
 pub enum Register {
     Zero = 0,
     At = 1,
@@ -81,6 +82,13 @@ impl std::str::FromStr for Register {
             "$ra" => Ok(Register::Ra),
             other => Err(RegisterError::NoSuchRegister(other.to_string())),
         }
+    }
+}
+
+impl Register {
+    pub fn from_bits(bits: u8) -> Result<Self, RegisterError> {
+        Register::try_from_primitive(bits)
+            .map_err(|_| RegisterError::NoSuchRegister(bits.to_string()))
     }
 }
 
