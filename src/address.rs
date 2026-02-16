@@ -4,7 +4,7 @@ use std::{
     ops::{Add, AddAssign, Sub},
 };
 
-#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, Eq, Rem, PartialEq)]
+#[derive(Clone, Copy, From, Into, Shr, BitAnd, Hash, Eq, Rem, PartialEq, PartialOrd, Ord)]
 pub struct Address(pub u32);
 
 impl Debug for Address {

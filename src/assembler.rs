@@ -116,7 +116,22 @@ impl<'a> Assembler<'a> {
         }
 
         if args.memory {
-            println!("{:?}", self.memory);
+            let mut sorted: Vec<_> = self.memory.iter().collect();
+            sorted.sort_by_key(|(addr, _)| *addr);
+
+            println!("\n=== Data Section ===");
+            for (addr, byte) in &sorted {
+                if **addr >= BASE_DATA_ADDR {
+                    println!("{:?}: 0x{:02X}", addr, byte);
+                }
+            }
+
+            println!("\n=== Text Section ===");
+            for (addr, byte) in &sorted {
+                if **addr < BASE_DATA_ADDR {
+                    println!("{:?}: 0x{:02X}", addr, byte);
+                }
+            }
         }
 
         Ok(())
