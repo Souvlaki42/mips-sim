@@ -265,8 +265,7 @@ impl<'a> Assembler<'a> {
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes_with_nul();
                     for (i, &byte) in bytes.iter().enumerate() {
-                        let addr = self.data_addr - BASE_DATA_ADDR + i;
-                        self.memory.insert(addr, byte);
+                        self.memory.insert(self.data_addr + i, byte);
                     }
                     self.data_addr += bytes.len();
                     Ok(())
@@ -280,8 +279,7 @@ impl<'a> Assembler<'a> {
                         .map_err(|_| AssemblerError::InvalidString)?
                         .into_bytes();
                     for (i, &byte) in bytes.iter().enumerate() {
-                        let addr = self.data_addr - BASE_DATA_ADDR + i;
-                        self.memory.insert(addr, byte);
+                        self.memory.insert(self.data_addr + i, byte);
                     }
                     self.data_addr += bytes.len();
                     Ok(())
@@ -295,10 +293,7 @@ impl<'a> Assembler<'a> {
                         return Err(AssemblerError::InvalidByteValue);
                     }
 
-                    let byte_val = *value as u8;
-                    let addr = self.data_addr - BASE_DATA_ADDR;
-
-                    self.memory.insert(addr, byte_val);
+                    self.memory.insert(self.data_addr, *value as u8);
                     self.data_addr += 1;
                 }
                 Ok(())
@@ -310,11 +305,10 @@ impl<'a> Assembler<'a> {
                 }
 
                 while let Some(Token::Number { value }) = tokens.next() {
-                    let addr = self.data_addr;
                     let bytes = value.to_le_bytes();
 
                     for (i, &byte) in bytes.iter().enumerate() {
-                        self.memory.insert(addr + i, byte);
+                        self.memory.insert(self.data_addr + i, byte);
                     }
                     self.data_addr += bytes.len();
                 }

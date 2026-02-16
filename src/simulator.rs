@@ -7,7 +7,6 @@ use thiserror::Error;
 
 use crate::{
     address::Address,
-    assembler::BASE_DATA_ADDR,
     instructions::Instruction,
     registers::{Register, RegisterError, RegisterFile},
 };
@@ -92,10 +91,9 @@ impl<'a> Simulator<'a> {
             }
             4 => {
                 let addr: Address = self.registers.get(Register::A0).into();
-                let offset: Address = addr - BASE_DATA_ADDR;
 
                 let mut bytes = Vec::new();
-                let mut i = offset;
+                let mut i = addr;
                 loop {
                     match self.memory.get(&i) {
                         Some(&byte) if byte != 0 => {
