@@ -93,16 +93,17 @@ pub fn tokenize(file_name: &str) -> Result<Vec<Vec<Token>>, TokenizerError> {
         let mut inside_byte = false;
 
         let raw_tokens: Vec<&str> = line
-            .split(|c: char| {
-                if c == '"' && !inside_byte {
+            .split(|c: char| match c {
+                '"' if !inside_byte => {
                     inside_string = !inside_string;
                     false
-                } else if c == '\'' && !inside_string {
+                }
+                '\'' if !inside_string => {
                     inside_byte = !inside_byte;
                     false
-                } else {
-                    !inside_byte || !inside_string || c.is_whitespace() || c == ','
                 }
+                _ if inside_string || inside_byte => false,
+                _ => c.is_whitespace() || c == ',',
             })
             .filter(|s| !s.is_empty())
             .collect();
