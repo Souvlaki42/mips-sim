@@ -23,8 +23,6 @@ enum Segment {
 pub enum AssemblerError {
     #[error("Unknown directive")]
     InvalidToken,
-    #[error("Entrypoint missing")]
-    EntrypointMissing,
     #[error("Invalid instruction")]
     InvalidInstruction,
     #[error("Invalid immediate: {0:?}")]
@@ -52,7 +50,7 @@ pub struct Assembler<'a> {
     symbols: HashMap<String, Symbol>,
     data_addr: Address,
     text_addr: Address,
-    entry_point: Option<String>,
+    entry_point: Address,
     current_segment: Segment,
 }
 
@@ -62,7 +60,7 @@ impl<'a> Assembler<'a> {
             symbols: HashMap::new(),
             data_addr: BASE_DATA_ADDR,
             text_addr: BASE_TEXT_ADDR,
-            entry_point: None,
+            entry_point: BASE_TEXT_ADDR,
             memory,
             current_segment: Segment::Text,
         }
@@ -231,10 +229,6 @@ impl<'a> Assembler<'a> {
 
     pub fn get_entry_point(&self) -> Address {
         self.entry_point
-            .as_ref()
-            .and_then(|e| self.symbols.get(e))
-            .map(|s| s.address)
-            .unwrap_or(BASE_TEXT_ADDR)
     }
 
     fn handle_directive(
@@ -252,11 +246,14 @@ impl<'a> Assembler<'a> {
                 Ok(())
             }
             Directive::Global => {
-                if let Some(Token::Label { name, decl: false }) = tokens.next() {
-                    self.entry_point = Some(name.clone());
+                if let Some(Token::Label {
+                    name: _,
+                    decl: false,
+                }) = tokens.next()
+                {
                     Ok(())
                 } else {
-                    Err(AssemblerError::EntrypointMissing)
+                    Err(AssemblerError::InvalidInstruction)
                 }
             }
             Directive::Asciiz => {
