@@ -1,6 +1,7 @@
 mod address;
 mod args;
 mod assembler;
+mod instructions;
 mod lexer;
 mod registers;
 mod simulator;
@@ -38,10 +39,9 @@ fn main() {
         return;
     }
 
-    let instructions = assembler.get_instructions();
     let entry = assembler.get_entry_point();
 
-    let mut simulator = Simulator::new(instructions, &mut memory, entry);
+    let mut simulator = Simulator::new(&mut memory, entry);
 
     let mut exit_code = 0;
     loop {

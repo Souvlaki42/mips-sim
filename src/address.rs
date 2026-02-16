@@ -29,6 +29,13 @@ impl Add<u32> for Address {
     }
 }
 
+impl Add<usize> for &Address {
+    type Output = Address;
+    fn add(self, offset: usize) -> Address {
+        Address(self.0 + offset as u32)
+    }
+}
+
 impl AddAssign<usize> for Address {
     fn add_assign(&mut self, offset: usize) {
         self.0 += offset as u32;
@@ -41,8 +48,14 @@ impl From<Address> for usize {
     }
 }
 
-impl From<Address> for i32 {
+impl From<Address> for i16 {
     fn from(value: Address) -> Self {
-        value.0 as i32
+        value.0 as i16
+    }
+}
+
+impl From<Address> for u16 {
+    fn from(value: Address) -> Self {
+        value.0 as u16
     }
 }

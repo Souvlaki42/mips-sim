@@ -7,7 +7,8 @@ use thiserror::Error;
 
 use crate::{
     address::Address,
-    assembler::{BASE_DATA_ADDR, Instruction},
+    assembler::BASE_DATA_ADDR,
+    instructions::Instruction,
     registers::{Register, RegisterError, RegisterFile},
 };
 
@@ -33,20 +34,14 @@ pub enum SimulatorError {
 pub struct Simulator<'a> {
     memory: &'a mut HashMap<Address, u8>,
     registers: RegisterFile,
-    instructions: HashMap<Address, Instruction>,
     pc: Address,
 }
 
 impl<'a> Simulator<'a> {
-    pub fn new(
-        instructions: HashMap<Address, Instruction>,
-        memory: &'a mut HashMap<Address, u8>,
-        entry: Address,
-    ) -> Self {
+    pub fn new(memory: &'a mut HashMap<Address, u8>, entry: Address) -> Self {
         Self {
             memory,
             registers: RegisterFile::default(),
-            instructions,
             pc: entry,
         }
     }
@@ -149,13 +144,17 @@ impl<'a> Simulator<'a> {
     }
 
     pub fn step(&mut self) -> Result<(), SimulatorError> {
-        let instruction = *self
-            .instructions
-            .get(&self.pc)
-            .ok_or(SimulatorError::NoMoreInstructions)?;
+        let mut bytes = [0u8; 4];
+        for i in 0..bytes.len() {
+            bytes[i] = *self.memory.get(&(self.pc + i)).unwrap();
+        }
+
+        let Ok(instruction) = Instruction::decode(u32::from_le_bytes(bytes)) else {
+            return Err(SimulatorError::NoMoreInstructions);
+        };
 
         self.execute_instruction(instruction)?;
-        self.pc += 4;
+        self.pc += bytes.len();
         Ok(())
     }
 }
